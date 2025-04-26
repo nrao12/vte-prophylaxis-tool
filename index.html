@@ -2,10 +2,170 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VTE Prophylaxis Tool</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+<style>
+    body { font-family: Arial, sans-serif; background-color: #f5f5f5; margin: 20px; }
+    .container { background-color: white; padding: 20px; border-radius: 10px; max-width: 800px; margin: auto; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    h1 { text-align: center; color: #007BFF; }
+    label { font-weight: bold; display: block; margin-top: 15px; }
+    select, button { width: 100%; padding: 10px; margin-top: 5px; }
+    .buttons { display: flex; gap: 10px; margin-top: 20px; }
+    .buttons button { flex: 1; padding: 10px; }
+    .result { margin-top: 20px; padding: 15px; border-radius: 5px; }
+    .low { background-color: #d4edda; color: #155724; }
+    .high { background-color: #f8d7da; color: #721c24; }
+    .disclaimer { margin-top: 30px; font-size: 12px; color: gray; text-align: center; }
+</style>
 </head>
 <body>
-<p>Full app HTML content is expected here - replace with full version as needed.</p>
+
+<div class="container" id="report">
+    <h1>VTE Prophylaxis Tool</h1>
+
+    <!-- Dropdowns Start -->
+    <label>Age</label>
+    <select id="age">
+        <option value="0">&lt;35 years</option>
+        <option value="1">35-54 years</option>
+        <option value="2">55-74 years</option>
+        <option value="3">75+ years</option>
+    </select>
+
+    <label>Gender</label>
+    <select id="gender">
+        <option value="0">Female</option>
+        <option value="1">Male</option>
+    </select>
+
+    <label>Body Mass Index (BMI)</label>
+    <select id="bmi">
+        <option value="0">&lt;25</option>
+        <option value="1">25-34</option>
+        <option value="2">35+</option>
+    </select>
+
+    <label>Family History of VTE</label>
+    <select id="familyVTE">
+        <option value="0">No</option>
+        <option value="2">Yes</option>
+    </select>
+
+    <label>Personal History of VTE or Thrombophilia</label>
+    <select id="personalVTE">
+        <option value="0">No</option>
+        <option value="4">Yes</option>
+    </select>
+
+    <label>Hormonal Therapy Use</label>
+    <select id="hormonal">
+        <option value="0">No</option>
+        <option value="4">Yes</option>
+    </select>
+
+    <label>Cancer Diagnosis in Last 5 Years</label>
+    <select id="cancer">
+        <option value="0">No</option>
+        <option value="3">Yes</option>
+    </select>
+
+    <label>Pregnancy or Puerperium</label>
+    <select id="pregnancy">
+        <option value="0">No</option>
+        <option value="3">Yes</option>
+    </select>
+
+    <label>Recent Immobilization</label>
+    <select id="immobilization">
+        <option value="0">No</option>
+        <option value="2">Yes</option>
+    </select>
+
+    <label>Surgery within past 3 months</label>
+    <select id="surgery">
+        <option value="0">No</option>
+        <option value="2">Yes</option>
+    </select>
+
+    <label>Comorbidity</label>
+    <select id="comorbidity">
+        <option value="0">No</option>
+        <option value="1">Yes</option>
+    </select>
+
+    <label>Current Immobilization Type</label>
+    <select id="cast">
+        <option value="0">Other cast/bracing with plantar support</option>
+        <option value="1">Foot cast</option>
+        <option value="2">Below knee cast</option>
+        <option value="3">Above knee cast or equinus position</option>
+    </select>
+
+    <label>Trauma Risk</label>
+    <select id="trauma">
+        <option value="1">Low Risk - Single malleolar ankle fracture, patella dislocation, metatarsal/forefoot fracture, non-severe sprain, muscle injury</option>
+        <option value="2">Intermediate Risk - Bi/tri-malleolar fracture, patella fracture, Lisfranc injury, severe sprain (grade 3)</option>
+        <option value="3">High Risk - Fibula/tibia shaft fracture, tibial plateau fracture</option>
+    </select>
+    <!-- Dropdowns End -->
+
+    <!-- Buttons -->
+    <div class="buttons">
+        <button onclick="calculateScore()">Calculate</button>
+        <button onclick="resetForm()">Reset</button>
+        <button onclick="exportPDF()">Export PDF</button>
+    </div>
+
+    <!-- Results -->
+    <div id="result" class="result"></div>
+
+    <!-- Disclaimer -->
+    <div class="disclaimer">
+        <p><strong>Disclaimer:</strong> This tool is for clinical decision support only and does not replace medical judgment. Use at your own discretion. Author: Mr. PM Shenoy</p>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script>
+function calculateScore() {
+    let total = 0;
+    const fields = ['age', 'gender', 'bmi', 'familyVTE', 'personalVTE', 'hormonal', 'cancer', 'pregnancy', 'immobilization', 'surgery', 'comorbidity', 'cast', 'trauma'];
+    fields.forEach(id => {
+        total += parseInt(document.getElementById(id).value);
+    });
+
+    let category = '';
+    let recommendation = '';
+    let colorClass = '';
+
+    if (total <= 6) {
+        category = 'Low Risk';
+        recommendation = 'No anticoagulation';
+        colorClass = 'low';
+    } else {
+        category = 'High Risk';
+        recommendation = 'Dalteparin (dose as per weight) as duration of immobility';
+        colorClass = 'high';
+    }
+
+    document.getElementById('result').className = 'result ' + colorClass;
+    document.getElementById('result').innerHTML = `<strong>Total Score:</strong> ${total}<br><strong>Risk Category:</strong> ${category}<br><strong>Recommendation:</strong> ${recommendation}`;
+}
+
+function resetForm() {
+    document.querySelectorAll('select').forEach(select => {
+        select.selectedIndex = 0;
+    });
+    document.getElementById('result').className = 'result';
+    document.getElementById('result').innerHTML = '';
+}
+
+function exportPDF() {
+    var element = document.getElementById('report');
+    html2pdf().from(element).set({ margin: 1, filename: 'VTE_Prophylaxis_Report.pdf', html2canvas: { scale: 2 }, jsPDF: {orientation: 'portrait'} }).save();
+}
+</script>
+
 </body>
 </html>
